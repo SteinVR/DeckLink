@@ -3,10 +3,12 @@ import sys
 from types import SimpleNamespace
 from unittest import mock
 
+
 sys.path.insert(
     0,
     os.path.abspath(os.path.join(os.path.dirname(__file__), "..")),
 )
+
 
 sys.modules.setdefault("hid_parser", mock.MagicMock())
 sys.modules.setdefault("usb_gadget", mock.MagicMock())
