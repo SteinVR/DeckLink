@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+_gadget_completer() {
+  # Firstly, check if binary is found, don't autocomplete when not in GadgetDeck directory
+  if type "${COMP_WORDS[0]}" > /dev/null 2>&1; then
+    if [ "${#COMP_WORDS[@]}" == "2" ]; then
+      # autocomplete the action
+      COMPREPLY=($(compgen -W "setup destroy enable disable" "${COMP_WORDS[1]}"))
+    elif [ "${#COMP_WORDS[@]}" == "3" ]; then
+      # Check the value of the action argument
+      if [ "${COMP_WORDS[1]}" == "destroy" ]; then
+        # Autocomplete by listing what's in the usb gadget folder
+        COMPREPLY=($(compgen -W "`ls /sys/kernel/config/usb_gadget`" "${COMP_WORDS[2]}"))
+      fi
+    fi
+  fi
+}
+
+# Register the autocomplete function
+complete -F _gadget_completer gadget-deck-manager.py
