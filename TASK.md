@@ -1,7 +1,7 @@
 # DeckLink MVP: Task List
 
 ## Phase 1: Foundation & Refactoring
-- [ ] **Task-00: Setup DevOps Environment.**
+- [X] **Task-00: Setup DevOps Environment.**
     - Create a `Dockerfile` based on `archlinux:latest` that installs all system and python dependencies needed for the project.
     - Create a GitHub Actions workflow file at `.github/workflows/ci.yml`.
     - The workflow should run on every push and pull request.
@@ -12,7 +12,7 @@
     - Create directories: `decklink_app`, `source_deckpad`, `source_gadgetdeck`.
     - Copy the original source code of both projects into their respective `source_*` directories.
 
-- [ ] **Task-02: Refactor `gadget-deck-manager.py` into an importable module.**
+- [X] **Task-02: Refactor `gadget-deck-manager.py` into an importable module.**
     - Create a new file `decklink_app/gadget_manager.py`.
     - Move the core logic (`gadget_setup`, `function_enable`, `function_disable`, `gadget_destroy`) from the original script into this new file as Python functions.
     - Remove the `argparse` command-line handling. The functions should accept parameters directly.
