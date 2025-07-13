@@ -1,0 +1,29 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+          pip install black flake8 pytest
+      - name: Run black
+        run: black --check .
+      - name: Run flake8
+        run: flake8
+      - name: Run shellcheck
+        run: |
+          sh_files=$(git ls-files '*.sh' ':!:source_Deckpad/*' ':!:source_GadgetDeck/*')
+          if [ -n "$sh_files" ]; then
+            shellcheck $sh_files
+          fi
+      - name: Run tests
+        run: python -m pytest -q
