@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import threading
 import time
 
@@ -39,6 +40,12 @@ DIGITAL_ACTIONS = (
     "BackRightBottom",
 )
 
+JOYSTICK_COUNT = 2
+TRIGGER_COUNT = 2
+BUTTON_COUNT = 24
+
+_logger = logging.getLogger(__name__)
+
 
 def _get_controller(steam: STEAMWORKS) -> tuple[list[int], int | None]:
     controllers = steam.Input.GetConnectedControllers()
@@ -56,44 +63,72 @@ def start_translation_loop(stop_event: threading.Event | None) -> None:
         stop_event = threading.Event()
 
     hid = usb_gadget.HIDFunction(gm.gadget, "joystick")
-    js_gadget = usb_gadget.JoystickGadget(hid.device, 2, 2, 24)
+    js_gadget = usb_gadget.JoystickGadget(
+        hid.device,
+        JOYSTICK_COUNT,
+        TRIGGER_COUNT,
+        BUTTON_COUNT,
+    )
 
-    steam = STEAMWORKS()
-    steam.initialize()
-    steam.Input.Init()
+    steam = None
+    try:
+        steam = STEAMWORKS()
+        steam.initialize()
+        steam.Input.Init()
 
-    steam.action_set = steam.Input.GetActionSetHandle(ACTION_SET_NAME)
-    steam.analog_handles = {
-        name: steam.Input.GetAnalogActionHandle(name) for name in ANALOG_ACTIONS
-    }
-    steam.digital_handles = {
-        name: steam.Input.GetDigitalActionHandle(name) for name in DIGITAL_ACTIONS
-    }
-
-    controllers, controller = _get_controller(steam)
-
-    while not stop_event.is_set():
-        steam.Input.RunFrame()
-        if not controller:
-            controllers, controller = _get_controller(steam)
-            time.sleep(0.01)
-            continue
-
-        analog_data = {
-            name: steam.Input.GetAnalogActionData(controller, handle)
-            for name, handle in steam.analog_handles.items()
+        steam.action_set = steam.Input.GetActionSetHandle(ACTION_SET_NAME)
+        steam.analog_handles = {
+            name: steam.Input.GetAnalogActionHandle(name) for name in ANALOG_ACTIONS
         }
-        digital_data = {
-            name: steam.Input.GetDigitalActionData(controller, handle).bState
-            for name, handle in steam.digital_handles.items()
+        steam.digital_handles = {
+            name: steam.Input.GetDigitalActionHandle(name) for name in DIGITAL_ACTIONS
         }
 
-        js_gadget.set_joystick(0, analog_data["JoyLeft"].x, -analog_data["JoyLeft"].y)
-        js_gadget.set_joystick(1, analog_data["JoyRight"].x, -analog_data["JoyRight"].y)
-        js_gadget.set_trigger(0, analog_data["TrigLeft"].x)
-        js_gadget.set_trigger(1, analog_data["TrigRight"].x)
-        for i, btn in enumerate(DIGITAL_ACTIONS):
-            js_gadget.set_button(i, digital_data[btn])
-        js_gadget.update()
+        controllers, controller = _get_controller(steam)
 
-        time.sleep(0.01)
+        while not stop_event.is_set():
+            steam.Input.RunFrame()
+            if not controller:
+                controllers, controller = _get_controller(steam)
+                time.sleep(0.016)
+                continue
+
+            analog_data = {
+                name: steam.Input.GetAnalogActionData(controller, handle)
+                for name, handle in steam.analog_handles.items()
+            }
+            digital_data = {
+                name: steam.Input.GetDigitalActionData(controller, handle).bState
+                for name, handle in steam.digital_handles.items()
+            }
+
+            js_gadget.set_joystick(
+                0,
+                analog_data["JoyLeft"].x,
+                -analog_data["JoyLeft"].y,
+            )
+            js_gadget.set_joystick(
+                1,
+                analog_data["JoyRight"].x,
+                -analog_data["JoyRight"].y,
+            )
+            js_gadget.set_trigger(0, analog_data["TrigLeft"].x)
+            js_gadget.set_trigger(1, analog_data["TrigRight"].x)
+            for i, btn in enumerate(DIGITAL_ACTIONS):
+                js_gadget.set_button(i, digital_data[btn])
+            js_gadget.update()
+
+            time.sleep(0.016)
+    except Exception as exc:  # noqa: BLE001
+        _logger.error("Steam Input processing failed: %s", exc)
+    finally:
+        try:
+            if steam is not None:
+                shutdown = getattr(steam, "shutdown", None)
+                if callable(shutdown):
+                    shutdown()
+                input_shutdown = getattr(steam.Input, "Shutdown", None)
+                if callable(input_shutdown):
+                    input_shutdown()
+        except Exception as exc:  # noqa: BLE001
+            _logger.error("Steam Input shutdown failed: %s", exc)
