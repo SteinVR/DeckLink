@@ -20,7 +20,7 @@ All remaining work is consolidated into one phase so that each task feeds direct
 |----|------|-------|
 | 03 | - [X] **Lifecycle Shell Script** – create `main.sh` to wrap UI + sudo flow<br>Replace all VirtualHere logic with stub calls to the Python backend. | Use ASCII/figlet splash just like Deckpad. |
 | 04 | - [X] **Python Entrypoint** – implement `main_app.py` to glue the shell script with backend modules (`setup`, `run`, `destroy`). | Must import, not shell‑exec, `decklink_app` functions. |
-| 05 | - [ ] **Input Translator** – port core loop into `decklink_app/input_translator.py`, exposing `start_translation_loop()`. | Needs a clean shutdown signal from `main_app.py`. |
+| 05 | - [X] **Input Translator** – port core loop into `decklink_app/input_translator.py`, exposing `start_translation_loop()`. | **Done** - PR reviewed, needs minor fixes (error handling, constants). |
 | 06 | - [ ] **Installer** – write `install.sh` to copy files, install deps and mark `main.sh` executable. | Must not copy any `source_*` content into final build. |
 | 07 | - [ ] **User‑facing Docs** – draft `README.md` with install & usage instructions. | Include BIOS DRD toggle, sudo setup, and expected host‑PC behaviour. |
 
