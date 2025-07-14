@@ -28,7 +28,7 @@ This is your mandatory, non-negotiable workflow for every task.
 4.  **Execute:** Once the plan is approved, implement the code and tests exactly as described in the plan.
 5.  **Verify:** Run all tests within the provided environment (e.g., via Docker command) to ensure your changes are correct and have not introduced any regressions.
 6.  **Submit Pull Request:** Once all tests pass, create a Pull Request. The description must include a link to the task and the approved implementation plan.
-7.  **Update Task List:** After the Pull Request is merged by the human, mark the tasks as complete by prepending `X` in `TASK.md`.
+7.  **IMPORTANT** **Update Task List:** After the Pull Request is merged by the human, mark the tasks as complete by prepending `X` in `TASK.md`.
 
 ---
 
