@@ -19,7 +19,7 @@ Before beginning any work, you MUST perform the following steps:
 This is your mandatory, non-negotiable workflow for every task.
 
 1.  **Select Tasks:** Identify the tasks in `TASK.md` that is not marked as done: `X`.
-2.  **Create Implementation Plan:** Propose a detailed, step-by-step implementation plan. This plan is your primary output for the first phase. It MUST include:
+2.  **Create Implementation Plan:** Propose a detailed, step-by-step implementation plan of selected tasks. This plan is your primary output for the first phase. It MUST include:
     -   A list of all files you will create or modify.
     -   The definitions of new functions, classes, or methods you will add.
     -   A clear description of the tests (both unit and E2E) you will write to verify the functionality.
@@ -42,7 +42,7 @@ These rules govern the quality of the code you write.
 -   **Naming Conventions:** Use clear, descriptive, and consistent names for all variables, functions, classes, and files.
 -   **Documentation:** Write clear, complete docstrings (using the project's specified format) for all public functions, methods, and classes. Avoid unnecessary inline comments for obvious code.
 -   **Error Handling:** Implement robust error handling using try-except blocks for operations that can fail (e.g., I/O, network requests).
-*   **Memory:** Use Agent Memory Protocol.
+-   **IMPORTANT** **Memory:** Use Agent Memory Protocol.
 ---
 
 ## 5. Testing Mandate

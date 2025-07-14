@@ -1,0 +1,35 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+## Project Awareness & Context
+
+- Before starting work, always see the ARCHITECTURE.md file to familiarize yourself with the architecture of the project
+- Before starting work always look at the TASK.md file to familiarize yourself with the project tasks, if it is missing or all tasks are not up to date, then update the file to match the current project stage.
+- Always mark completed tasks in `TASK.md`
+- Focus on the areas of code relevant to the task. Do not touch code that is unrelated to the task.
+- Use the same style of code writing that already exists in RAG_Prototype_6.py
+- Don't create any dummy file or mockups
+
+## Coding Principles & Practices
+
+- Always prefer simple solutions.
+- Avoid duplication of code whenever possible, which means checking for other areas of the codebase that might already have similar code and functionality.
+- Avoid making major changes to the patterns and architecture of how a feature works, after it has shown to work well.
+- Always think about what other methods and areas of code might be affected by code changes.
+- When fixing an issue or bug, do not introduce a new pattern or technology without first exhausting all options for the existing implementation. And if you finally do this, make sure to remove the old implementation afterwards and any related dead code so we don't have duplicate logic.
+- Avoid writing scripts in files if possible especially if the script is likely only to be run once
+- Use clear, descriptive, and consistent names for variables, functions, classes, and files.
+- Avoid unnecessary comments
+- Write clear full docstrings for all public functions, methods, and classes.
+- Catch exceptions in try-except blocks for general functional parts.
+
+## Tools Rules
+- When the user asks to check the documentation, use the context7
+- Always use the context7 MCP server to reference documentation for libraries like LangChain, Pydantic, Streamlit, genai, RAGAs and every time there's a problem with internal methods.
+- For the tokens, **start with 5000** but then increase to **20000** if your first search didn’t give relevant documentation.
+- Only search three times maximum for any specific piece of documentation.
+- Use brave-search to find up-to-date information
+
+
