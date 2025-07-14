@@ -41,15 +41,17 @@ def test_gadget_setup():
 
 def test_function_enable_joystick():
     gadget = mock.MagicMock()
-    with mock.patch.object(gm, "gadget", gadget), mock.patch.object(
-        gm, "create_function_hid"
-    ) as create_fn, mock.patch.object(gm, "chmod_hidg") as chmod:
+    with (
+        mock.patch.object(gm, "gadget", gadget),
+        mock.patch.object(gm, "create_function_hid") as create_fn,
+        mock.patch.object(gm, "chmod_hidg") as chmod,
+    ):
         gm.function_enable("joystick")
 
     gadget.deactivate.assert_called_once()
     create_fn.assert_called_once_with(
         "joystick",
-        "HID Descriptors/joystick.txt",
+        "joystick.txt",
     )
     gadget.activate.assert_called_once()
     chmod.assert_called_once()
@@ -65,10 +67,14 @@ def test_function_disable_joystick():
     gadget.__getitem__.side_effect = side_effect
     entry = mock.MagicMock()
     entry.is_symlink.return_value = True
-    with mock.patch.object(gm, "gadget", gadget), mock.patch.object(
-        gm, "remove_function"
-    ) as remove_fn, mock.patch.object(gm, "chmod_hidg") as chmod, mock.patch(
-        "decklink_app.gadget_manager.os.scandir", return_value=[entry]
+    with (
+        mock.patch.object(gm, "gadget", gadget),
+        mock.patch.object(gm, "remove_function") as remove_fn,
+        mock.patch.object(gm, "chmod_hidg") as chmod,
+        mock.patch(
+            "decklink_app.gadget_manager.os.scandir",
+            return_value=[entry],
+        ),
     ):
         gm.function_disable("joystick")
 
@@ -76,3 +82,30 @@ def test_function_disable_joystick():
     remove_fn.assert_called_once_with("hid.joystick")
     gadget.activate.assert_called_once()
     chmod.assert_called_once()
+
+
+def test_function_disable_shell():
+    gadget = mock.MagicMock()
+    usb_function = mock.MagicMock(port_num=1)
+    entry = mock.MagicMock()
+    entry.is_symlink.return_value = False
+    with (
+        mock.patch.object(gm, "gadget", gadget),
+        mock.patch(
+            "decklink_app.gadget_manager.usb_gadget.USBFunction",
+            return_value=usb_function,
+        ) as usb_cls,
+        mock.patch.object(gm, "remove_function") as remove_fn,
+        mock.patch("decklink_app.gadget_manager.subprocess.call") as sub_call,
+        mock.patch("decklink_app.gadget_manager.os.scandir", return_value=[]),
+        mock.patch.object(gm, "chmod_hidg") as chmod,
+    ):
+        gm.function_disable("shell")
+
+    sub_call.assert_called_once_with(
+        ["systemctl", "stop", "getty@ttyGS1.service"]
+    )  # noqa: E501
+    usb_cls.assert_called_once_with(gadget, "acm.shell")
+    remove_fn.assert_called_once_with("acm.shell")
+    gadget.activate.assert_not_called()
+    chmod.assert_not_called()

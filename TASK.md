@@ -1,52 +1,31 @@
-# DeckLink MVP: Task List
+# DeckLink MVP Task List
 
-## Phase 1: Foundation & Refactoring
-- [X] **Task-00: Setup DevOps Environment.**
-    - Create a `Dockerfile` based on `archlinux:latest` that installs all system and python dependencies needed for the project.
-    - Create a GitHub Actions workflow file at `.github/workflows/ci.yml`.
-    - The workflow should run on every push and pull request.
-    - It must perform linting for both Shell (`shellcheck`) and Python (`black`, `flake8`) code.
+## ✅ Completed Foundation
 
-- [X] **Task-01: Set up project structure.**
-    - Create a new Git repository.
-    - Create directories: `decklink_app`, `source_deckpad`, `source_gadgetdeck`.
-    - Copy the original source code of both projects into their respective `source_*` directories.
+| ID | Task | Status |
+|----|------|--------|
+| 00 | DevOps bootstrap (`Dockerfile`, CI workflow) | **Done** |
+| 01 | Baseline project structure (`decklink_app`, `source_*`) | **Done** |
+| 02 | Extract `gadget_manager.py` module | **Done** |
 
-- [X] **Task-02: Refactor `gadget-deck-manager.py` into an importable module.**
-    - Create a new file `decklink_app/gadget_manager.py`.
-    - Move the core logic (`gadget_setup`, `function_enable`, `function_disable`, `gadget_destroy`) from the original script into this new file as Python functions.
-    - Remove the `argparse` command-line handling. The functions should accept parameters directly.
+> *No action required on these items until regression issues appear.*
 
-## Phase 2: UI & Lifecycle Management
+---
 
-- [ ] **Task-03: Create the main lifecycle script `main.sh`.**
-    - Copy `deckpad.sh` and `functions.sh` into the project's root.
-    - Rename `deckpad.sh` to `main.sh`.
-    - Remove all logic related to `VirtualHere`.
-    - Add placeholder function calls for `setup`, `run`, and `destroy` stages which will later invoke the Python backend.
+## 🚀 Phase 2 – Integration, UI & Packaging
 
-## Phase 3: Integration & Core Logic
+All remaining work is consolidated into one phase so that each task feeds directly into the next and we can aim for a single “vertical slice” MVP build.
 
-- [ ] **Task-04: Create the main Python application entrypoint `main_app.py`.**
-    - This script will be the "glue" between the shell script and the Python modules.
-    - It should parse command-line arguments (`setup`, `run`, `destroy`).
-    - `setup` argument: should import and call the setup functions from `gadget_manager.py`.
-    - `destroy` argument: should import and call the cleanup functions from `gadget_manager.py`.
-    - `run` argument: should import and call the main input loop from `input_translator.py`.
+| ID | Task | Notes |
+|----|------|-------|
+| 03 | **Lifecycle Shell Script** – create `main.sh` to wrap UI + sudo flow<br>Replace all VirtualHere logic with stub calls to the Python backend. | Use ASCII/figlet splash just like Deckpad. |
+| 04 | **Python Entrypoint** – implement `main_app.py` to glue the shell script with backend modules (`setup`, `run`, `destroy`). | Must import, not shell‑exec, `decklink_app` functions. |
+| 05 | **Input Translator** – port core loop into `decklink_app/input_translator.py`, exposing `start_translation_loop()`. | Needs a clean shutdown signal from `main_app.py`. |
+| 06 | **Installer** – write `install.sh` to copy files, install deps and mark `main.sh` executable. | Must not copy any `source_*` content into final build. |
+| 07 | **User‑facing Docs** – draft `README.md` with install & usage instructions. | Include BIOS DRD toggle, sudo setup, and expected host‑PC behaviour. |
 
-- [ ] **Task-05: Adapt the input translation logic into `input_translator.py`.**
-    - Create `decklink_app/input_translator.py`.
-    - Copy the core `while True:` loop and related setup from `GadgetDeck/__main__.py` into a function, e.g., `start_translation_loop()`.
-    - Ensure it can be cleanly started and stopped (it will be terminated by `main.sh`).
+### Acceptance Criteria
 
-## Phase 4: Finalization & Packaging
-
-- [ ] **Task-06: Create a basic `install.sh` script.**
-    - The script should handle copying the application files to a system directory.
-    - It should install necessary Python packages from a `requirements.txt` file.
-    - It should install system dependencies like `figlet`.
-    - It should make `main.sh` executable.
-
-- [ ] **Task-07: Write the user-facing `README.md`.**
-    - Document the project's purpose.
-    - Provide clear, step-by-step installation and usage instructions for the end-user.
+- **No runtime dependency on `source_*`** directories. Any borrowed assets are copied to `decklink_app/` or `share/`.
+- `make lint && pytest` passes inside the DevOps container.
+- `./main.sh` launched from Steam Game Mode emulates a *generic gamepad* that is detected by Windows/Linux without extra drivers.

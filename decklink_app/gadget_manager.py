@@ -6,6 +6,8 @@ from typing import Union
 import hid_parser
 import usb_gadget
 
+DESCRIPTORS_DIR = os.path.join(os.path.dirname(__file__), "descriptors")
+
 
 gadget = usb_gadget.USBGadget("gadget-deck")
 
@@ -31,6 +33,11 @@ def gadget_setup():
 
 def gadget_destroy():
     """Remove the gadget and all of its functions."""
+    try:
+        gadget.deactivate()
+    except FileNotFoundError:
+        pass
+
     for config in os.scandir(gadget["configs"].path):
         config = usb_gadget.ConfigFS(config.path)
         for function in os.scandir(config.path):
@@ -39,11 +46,17 @@ def gadget_destroy():
         for language in os.scandir(config["strings"].path):
             os.rmdir(language.path)
         os.rmdir(config.path)
+
     for function in os.scandir(gadget["functions"].path):
         os.rmdir(function.path)
+
     for language in os.scandir(gadget["strings"].path):
         os.rmdir(language.path)
-    os.rmdir(gadget.path)
+
+    try:
+        os.rmdir(gadget.path)
+    except FileNotFoundError:
+        pass
 
 
 def create_function_hid(
@@ -51,6 +64,8 @@ def create_function_hid(
 ):
     """Create and link an HID function to the gadget."""
     if isinstance(report, str):
+        if not os.path.isabs(report):
+            report = os.path.join(DESCRIPTORS_DIR, report)
         with open(report, "rt") as f:
             descriptor = hid_parser.ReportDescriptor.from_str(f.read())
     else:
@@ -74,7 +89,7 @@ def function_enable(function: str, activate: bool = True):
     """Enable a gadget function."""
     gadget.deactivate()
     if function in ("joystick", "mouse", "keyboard"):
-        create_function_hid(function, f"HID Descriptors/{function}.txt")
+        create_function_hid(function, f"{function}.txt")
         if activate:
             gadget.activate()
         chmod_hidg()
@@ -105,8 +120,9 @@ def function_disable(function: str, activate: bool = True):
         remove_function("ffs.mtp")
     if function == "shell":
         f = usb_gadget.USBFunction(gadget, "acm.shell")
-        cmd = ["systemctl", "start", f"getty@ttyGS{f.port_num}.service"]
+        cmd = ["systemctl", "stop", f"getty@ttyGS{f.port_num}.service"]
         subprocess.call(cmd)
+        remove_function("acm.shell")
     linked_functions = [
         f for f in os.scandir(gadget["configs"]["c.1"].path) if f.is_symlink()
     ]
