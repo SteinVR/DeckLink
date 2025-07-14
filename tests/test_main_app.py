@@ -7,6 +7,8 @@ sys.path.insert(
     os.path.abspath(os.path.join(os.path.dirname(__file__), "..")),
 )
 
+sys.modules.setdefault("steamworks", mock.MagicMock())
+
 import decklink_app.main_app as main_app  # noqa: E402
 
 
@@ -58,3 +60,17 @@ def test_destroy_error():
         side_effect=RuntimeError,
     ):
         assert main_app.main(["destroy"]) == 1
+
+
+def test_run_blocks_until_thread_completes():
+    dummy_thread = mock.MagicMock()
+
+    def start_side_effect():
+        main_app._controller.thread = dummy_thread
+        return dummy_thread
+
+    with mock.patch.object(
+        main_app._controller, "start", side_effect=start_side_effect
+    ):
+        assert main_app.run() == 0
+        dummy_thread.join.assert_called_once()
