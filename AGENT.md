@@ -19,7 +19,7 @@ Before beginning any work, you MUST perform the following steps:
 This is your mandatory, non-negotiable workflow for every task.
 
 1.  **Select Tasks:** Identify the tasks in `CODE_REVIEW.md` if it all done or empty -> read `TASK.md` that is not marked as done: `X`.
-2.  **Create Implementation Plan:** Propose a detailed, step-by-step implementation plan of selected tasks. This plan is your primary output for the first phase. It MUST include:
+2.  *Only when user asks* **Create Implementation Plan:** Propose a detailed, step-by-step implementation plan of selected tasks. This plan is your primary output for the first phase. It MUST include:
     -   A list of all files you will create or modify.
     -   The definitions of new functions, classes, or methods you will add.
     -   A clear description of the tests (both unit and E2E) you will write to verify the functionality.
