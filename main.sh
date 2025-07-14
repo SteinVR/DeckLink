@@ -38,6 +38,10 @@ block_until_press_on_target() {
     TOUCHSCREEN_ID=$(xinput --list 2>/dev/null | grep -i -m 1 'touch' | grep -o 'id=[0-9]\+' | grep -o '[0-9]\+')
     local touch_x=0
     local touch_y=0
+    if [[ -z $TOUCHSCREEN_ID ]]; then
+        block_until_mouse_click
+        return
+    fi
     while (( touch_x < TARGET_X_MIN )) || (( touch_x > TARGET_X_MAX )) || (( touch_y < TARGET_Y_MIN )) || (( touch_y > TARGET_Y_MAX )); do
         _show_run_prompt
         block_until_mouse_click
@@ -48,6 +52,10 @@ block_until_press_on_target() {
         fi
         if [[ $touch_state =~ valuator\[1]=([0-9]*) ]]; then
             touch_y=${BASH_REMATCH[1]}
+        fi
+        if [[ -z $touch_state ]]; then
+            # Fallback if coordinates unavailable
+            break
         fi
     done
 }
@@ -63,16 +71,20 @@ reenable_sleep() {
 brightness_file=/sys/class/backlight/amdgpu_bl0/brightness
 
 set_brightness_to_minimum() {
-    cat "$brightness_file" >/tmp/brightness_bak
-    echo 0 >"$brightness_file"
-    chmod 444 "$brightness_file"
+    if [ -w "$brightness_file" ]; then
+        cat "$brightness_file" >/tmp/brightness_bak 2>/dev/null || true
+        echo 0 >"$brightness_file" 2>/dev/null || true
+        chmod 444 "$brightness_file" 2>/dev/null || true
+    fi
 }
 
 restore_brightness() {
-    chmod 666 "$brightness_file"
-    if [ -f /tmp/brightness_bak ]; then
-        cat /tmp/brightness_bak >"$brightness_file"
-        rm /tmp/brightness_bak
+    if [ -w "$brightness_file" ] || [ -r "$brightness_file" ]; then
+        chmod 666 "$brightness_file" 2>/dev/null || true
+        if [ -f /tmp/brightness_bak ]; then
+            cat /tmp/brightness_bak >"$brightness_file" 2>/dev/null || true
+            rm /tmp/brightness_bak
+        fi
     fi
 }
 
@@ -124,8 +136,11 @@ run_as_root() {
         reenable_sleep
         return 1
     fi
-    python3 decklink_app/main_app.py run &
-    echo $! >/tmp/decklink.pid
+    (
+        python3 decklink_app/main_app.py run &
+        echo $! >/tmp/decklink.pid
+        wait $!
+    ) &
     run_prompt_start
     block_until_press_on_target
     run_prompt_stop
