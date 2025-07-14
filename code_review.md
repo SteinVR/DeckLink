@@ -1,21 +1,51 @@
-# Code Review Report – DeckLink (14 Jul 2025)
+# Code Review Report – Tasks 03-04 Implementation
 
 ## Summary
-This review captures critical findings after integrating `source_*` codebases into the self‑contained DeckLink project. Items are ordered by severity.
+Review of the Python entrypoint and shell lifecycle script implementation for DeckLink MVP.
 
-| Area | Issue | Impact | Suggested fix |
-|------|-------|--------|---------------|
-| **Dev Ops** | `Dockerfile` and CI workflow (`.github/workflows/ci.yml`) were initially missing. | No reproducible builds or automated linting/tests in PRs. | **Resolved:** required files added to repository. |
-| **Runtime dependency** | `decklink_app/gadget_manager.py#create_function_hid()` still reads HID reports from `source_GadgetDeck/HID Descriptors/*`. | Violates “no functional link to `source_*`”; crashes once sources are removed. | **Resolved:** descriptors moved to `decklink_app/descriptors/` and code/tests updated. |
-| **Shell function disable** | `function_disable('shell')` calls `systemctl start getty@…` and skips `remove_function('acm.shell')`. | Leaves orphaned services & symlinks; prevents re‑enable. | **Resolved:** now stops the service, removes the function and reactivates if needed. |
-| **`gadget_destroy()` robustness** | Lacks initial `gadget.deactivate()` and uses unguarded `os.rmdir()`. | Partial clean‑up bricks the gadget until reboot. | **Resolved:** function now deactivates first and ignores missing paths. |
-| **Unit tests** | Tests rely on old descriptor location, will fail after move. | CI failures. | **Resolved:** tests updated to use package-relative descriptor paths. |
-| **Code hygiene** | Duplicate brightness logic, magic constants, and no logging. | Hard to maintain & debug. | Extract helpers, define constants, add `logging`. |
+| Component | Status | Issues Found | Recommendations |
+|-----------|--------|--------------|------------------|
+| **decklink_app/main_app.py** | ✅ Good | Signal handlers not cleaned up | Reset to SIG_DFL on stop() |
+| **decklink_app/input_translator.py** | ✅ Good | Stub implementation only | Ready for task 05 |
+| **main.sh** | ⚠️ Minor issues | Hardcoded touch coordinates, PID race condition | Add fallback detection |
+| **Tests** | ✅ Good | Comprehensive coverage | - |
 
-### Priority
-1. **Runtime descriptor path**
-2. **Shell disable bug**
-3. **Robust cleanup**
+## Key Findings
 
-Addressing these unblock a working USB‑gadget MVP. Subsequent commits can tackle Dev Ops gaps and hygiene improvements.
+### ✅ Strengths
+- Clean separation between shell and Python layers
+- Proper threading with graceful shutdown via Event
+- AppController elegantly manages process lifecycle
+- Shell script follows Deckpad patterns correctly
+- Good test coverage for main functions
 
+### ⚠️ Issues to Address
+
+1. **Non-blocking run() function**
+   ```python
+   def run() -> int:
+       _controller.start()
+       return 0  # Returns immediately, shell expects blocking
+   ```
+   **Fix**: Add `_controller.thread.join()` to block until completion
+
+2. **PID file race condition**
+   ```bash
+   python3 decklink_app/main_app.py run &
+   echo $! >/tmp/decklink.pid  # Process may exit before PID is saved
+   ```
+
+3. **Missing error handling for brightness control**
+   - No permission checks for `/sys/class/backlight/` access
+   - Should gracefully degrade if brightness control fails
+
+4. **Failed CI black Tests**
+   - would reformat /home/runner/work/DeckLink/DeckLink/decklink_app/main_app.py
+   - would reformat /home/runner/work/DeckLink/DeckLink/tests/test_main_app.py
+
+## Action Items
+- [ ] Fix blocking behavior in `run()` function
+- [ ] Add fallback for touch coordinate detection  
+- [ ] Improve PID file handling robustness
+- [ ] Add graceful degradation for brightness control
+- [ ] Fix CI black Tests
