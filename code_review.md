@@ -5,8 +5,8 @@ Review of Steam Input translation loop implementation porting from GadgetDeck to
 
 | Component | Status | Critical Issues | 
 |-----------|--------|-----------------|
-| **input_translator.py** | ⚠️ Needs fixes | Missing error handling, resource cleanup |
-| **test_input_translator.py** | ✅ Good | - |
+| **input_translator.py** | ⚠️ Needs fixes | Missing error handling, resource cleanup, flake8 violations |
+| **test_input_translator.py** | ⚠️ Minor issues | flake8 violations |
 
 ## ✅ Strengths
 - **Correct architecture integration** - properly uses `gadget_manager` instead of direct gadget creation
@@ -62,11 +62,25 @@ import logging
 _logger = logging.getLogger(__name__)
 ```
 
+### 5. **Flake8 Violations**
+```
+./decklink_app/input_translator.py:67:80: E501 line too long (80 > 79 characters)
+./decklink_app/input_translator.py:70:80: E501 line too long (82 > 79 characters)
+./decklink_app/input_translator.py:91:80: E501 line too long (86 > 79 characters)
+./decklink_app/input_translator.py:92:80: E501 line too long (88 > 79 characters)
+./tests/test_input_translator.py:41:80: E501 line too long (80 > 79 characters)
+./tests/test_input_translator.py:47:80: E501 line too long (82 > 79 characters)
+./tests/test_input_translator.py:53:80: E501 line too long (88 > 79 characters)
+./tests/test_input_translator.py:68:80: E501 line too long (80 > 79 characters)
+```
+**Fix**: Break long lines using parentheses or backslashes to stay within 79 character limit.
+
 ## Action Items
 - [ ] Add comprehensive try-catch error handling for Steam API calls
 - [ ] Implement resource cleanup in finally block
 - [ ] Replace magic numbers with named constants
 - [ ] Add logging import and error logging
+- [ ] Fix flake8 E501 violations (8 lines exceeding 79 characters)
 - [ ] Consider increasing sleep from 0.01 to 0.016 (~60 FPS)
 
 ## Verdict: **APPROVE with required fixes**
