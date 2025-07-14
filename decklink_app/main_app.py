@@ -63,19 +63,23 @@ def run() -> int:
     """Start the translation loop in a background thread."""
     _controller.start()
 
-    def _signal_handler(
-        signum: int, frame: Optional[object]
-    ) -> None:  # noqa: D401
+    def _signal_handler(signum: int, frame: Optional[object]) -> None:
         _controller.stop()
 
     signal.signal(signal.SIGINT, _signal_handler)
     signal.signal(signal.SIGTERM, _signal_handler)
+
+    if _controller.thread:
+        _controller.thread.join()
+
     return 0
 
 
 def stop() -> int:
     """Stop the translation loop."""
     _controller.stop()
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
+    signal.signal(signal.SIGTERM, signal.SIG_DFL)
     return 0
 
 

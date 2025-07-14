@@ -3,7 +3,8 @@ import sys
 from unittest import mock
 
 sys.path.insert(
-    0, os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    0,
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..")),
 )
 
 import decklink_app.main_app as main_app  # noqa: E402
@@ -22,7 +23,9 @@ def test_main_setup_ok():
 def test_main_setup_error():
     with (
         mock.patch.object(
-            main_app.gm, "gadget_setup", side_effect=RuntimeError
+            main_app.gm,
+            "gadget_setup",
+            side_effect=RuntimeError,
         ),
         mock.patch.object(main_app.gm, "function_enable") as enable_fn,
     ):
@@ -50,6 +53,8 @@ def test_destroy_calls_gadget_destroy():
 
 def test_destroy_error():
     with mock.patch.object(
-        main_app.gm, "gadget_destroy", side_effect=RuntimeError
+        main_app.gm,
+        "gadget_destroy",
+        side_effect=RuntimeError,
     ):
         assert main_app.main(["destroy"]) == 1
