@@ -1,21 +1,99 @@
+"""Translate Steam Input events to HID reports."""
+
+from __future__ import annotations
+
 import threading
 import time
 
+from steamworks import STEAMWORKS
+import usb_gadget
 
-# AICODE-NOTE: Stub translation loop to be replaced in later tasks
+from . import gadget_manager as gm
+
+
+ACTION_SET_NAME = "InGameControls"
+ANALOG_ACTIONS = (
+    "JoyLeft",
+    "JoyRight",
+    "TrigLeft",
+    "TrigRight",
+)
+DIGITAL_ACTIONS = (
+    "A",
+    "B",
+    "X",
+    "Y",
+    "UP",
+    "DOWN",
+    "LEFT",
+    "RIGHT",
+    "BumpLeft",
+    "BumpRight",
+    "Menu",
+    "Start",
+    "JoyPressLeft",
+    "JoyPressRight",
+    "BackLeftTop",
+    "BackLeftBottom",
+    "BackRightTop",
+    "BackRightBottom",
+)
+
+
+def _get_controller(steam: STEAMWORKS) -> tuple[list[int], int | None]:
+    controllers = steam.Input.GetConnectedControllers()
+    if not controllers:
+        return [], None
+    for controller in controllers:
+        steam.Input.ActivateActionSet(controller, steam.action_set)
+    return controllers, controllers[0]
 
 
 def start_translation_loop(stop_event: threading.Event | None) -> None:
-    """Run a placeholder translation loop.
+    """Run the Steam Input translation loop."""
 
-    Parameters
-    ----------
-    stop_event : threading.Event | None
-        Event used to signal when the loop should exit. If ``None`` the loop
-        runs indefinitely until interrupted.
-    """
     if stop_event is None:
         stop_event = threading.Event()
 
+    hid = usb_gadget.HIDFunction(gm.gadget, "joystick")
+    js_gadget = usb_gadget.JoystickGadget(hid.device, 2, 2, 24)
+
+    steam = STEAMWORKS()
+    steam.initialize()
+    steam.Input.Init()
+
+    steam.action_set = steam.Input.GetActionSetHandle(ACTION_SET_NAME)
+    steam.analog_handles = {
+        name: steam.Input.GetAnalogActionHandle(name) for name in ANALOG_ACTIONS
+    }
+    steam.digital_handles = {
+        name: steam.Input.GetDigitalActionHandle(name) for name in DIGITAL_ACTIONS
+    }
+
+    controllers, controller = _get_controller(steam)
+
     while not stop_event.is_set():
-        time.sleep(0.1)
+        steam.Input.RunFrame()
+        if not controller:
+            controllers, controller = _get_controller(steam)
+            time.sleep(0.01)
+            continue
+
+        analog_data = {
+            name: steam.Input.GetAnalogActionData(controller, handle)
+            for name, handle in steam.analog_handles.items()
+        }
+        digital_data = {
+            name: steam.Input.GetDigitalActionData(controller, handle).bState
+            for name, handle in steam.digital_handles.items()
+        }
+
+        js_gadget.set_joystick(0, analog_data["JoyLeft"].x, -analog_data["JoyLeft"].y)
+        js_gadget.set_joystick(1, analog_data["JoyRight"].x, -analog_data["JoyRight"].y)
+        js_gadget.set_trigger(0, analog_data["TrigLeft"].x)
+        js_gadget.set_trigger(1, analog_data["TrigRight"].x)
+        for i, btn in enumerate(DIGITAL_ACTIONS):
+            js_gadget.set_button(i, digital_data[btn])
+        js_gadget.update()
+
+        time.sleep(0.01)

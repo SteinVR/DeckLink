@@ -7,6 +7,8 @@ sys.path.insert(
     os.path.abspath(os.path.join(os.path.dirname(__file__), "..")),
 )
 
+sys.modules.setdefault("steamworks", mock.MagicMock())
+
 import decklink_app.main_app as main_app  # noqa: E402
 
 
