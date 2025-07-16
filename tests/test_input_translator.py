@@ -9,7 +9,8 @@ sys.path.insert(
     os.path.abspath(os.path.join(os.path.dirname(__file__), "..")),
 )
 
-sys.modules.setdefault("steamworks", mock.MagicMock())
+sys.modules["steamworks"] = mock.MagicMock()
+sys.modules["usb_gadget"] = mock.MagicMock()
 
 import decklink_app.input_translator as it  # noqa: E402
 
@@ -84,3 +85,19 @@ def test_translation_loop_one_iteration():
     # fmt: on
     assert js_instance.set_button.call_count == len(it.DIGITAL_ACTIONS)
     js_instance.update.assert_called_once()
+
+
+def test_missing_action_set_exits():
+    stop_event = threading.Event()
+    steam = mock.MagicMock()
+    steam.Input = mock.MagicMock()
+    steam.Input.GetConnectedControllers.return_value = []
+    steam.Input.GetActionSetHandle.return_value = 0
+
+    with (
+        mock.patch.object(it, "STEAMWORKS", return_value=steam),
+        mock.patch.object(it.usb_gadget, "HIDFunction"),
+        mock.patch.object(it.usb_gadget, "JoystickGadget"),
+    ):
+        it.start_translation_loop(stop_event)
+    steam.Input.GetActionSetHandle.assert_called_once_with(it.ACTION_SET_NAME)

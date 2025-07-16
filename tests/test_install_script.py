@@ -33,9 +33,13 @@ def test_install_copies_files(tmp_path):
     make_stub(bin_dir, "pacman", f'#!/bin/bash\necho "$@" >> {log_pacman}\n')
     make_stub(bin_dir, "pip3", f'#!/bin/bash\necho "$@" >> {log_pip}\n')
 
+    home = tmp_path / "home"
+    polkit = tmp_path / "polkit"
     env = {
         "PATH": f"{bin_dir}:{os.environ['PATH']}",
         "DESTDIR": str(dest),
+        "HOME": str(home),
+        "POLKIT_DIR": str(polkit),
     }
     result = run_shell(str(SCRIPT), **env)
     assert result.returncode == 0
@@ -52,6 +56,11 @@ def test_install_copies_files(tmp_path):
     assert "steamworks" in pip_log
     assert "usb-gadget" in pip_log
     assert "python-hid-parser" in pip_log
+
+    assert (
+        home / ".steam/steam/controller_config/game_actions_480.vdf"
+    ).exists()
+    assert (polkit / "90-decklink.rules").exists()
 
 
 def test_install_overwrites_existing(tmp_path):

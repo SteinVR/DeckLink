@@ -135,3 +135,9 @@ def chmod_hidg():
     """Set permissions on hidg devices."""
     for dev in glob.glob("/dev/hidg*"):
         subprocess.call(["chmod", "0666", dev])
+
+
+def validate_hid_device() -> None:
+    """Ensure at least one hidg device exists."""
+    if not glob.glob("/dev/hidg*"):
+        raise FileNotFoundError("hid gadget device not found")

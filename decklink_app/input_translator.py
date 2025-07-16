@@ -71,31 +71,40 @@ def start_translation_loop(stop_event: threading.Event | None) -> None:
     )
 
     steam = None
-    try:
-        steam = STEAMWORKS()
-        steam.initialize()
-        steam.Input.Init()
+    retry_count = 0
+    max_retries = 3
+    while not stop_event.is_set() and retry_count < max_retries:
+        try:
+            steam = STEAMWORKS()
+            steam.initialize()
+            steam.Input.Init()
 
-        steam.action_set = steam.Input.GetActionSetHandle(ACTION_SET_NAME)
-        # fmt: off
-        steam.analog_handles = {
-            name: steam.Input.GetAnalogActionHandle(name)
-            for name in ANALOG_ACTIONS
-        }
-        steam.digital_handles = {
-            name: steam.Input.GetDigitalActionHandle(name)
-            for name in DIGITAL_ACTIONS
-        }
-        # fmt: on
+            steam.action_set = steam.Input.GetActionSetHandle(ACTION_SET_NAME)
+            if not steam.action_set:
+                _logger.error("Steam action set %s not found", ACTION_SET_NAME)
+                return
+            steam.analog_handles = {
+                name: steam.Input.GetAnalogActionHandle(name)
+                for name in ANALOG_ACTIONS
+            }
+            steam.digital_handles = {
+                name: steam.Input.GetDigitalActionHandle(name)
+                for name in DIGITAL_ACTIONS
+            }
+            if any(h == 0 for h in steam.analog_handles.values()) or any(
+                h == 0 for h in steam.digital_handles.values()
+            ):
+                _logger.error("Required Steam Input actions missing")
+                return
 
-        controllers, controller = _get_controller(steam)
+            controllers, controller = _get_controller(steam)
 
-        while not stop_event.is_set():
-            steam.Input.RunFrame()
-            if not controller:
-                controllers, controller = _get_controller(steam)
-                time.sleep(0.016)
-                continue
+            while not stop_event.is_set():
+                steam.Input.RunFrame()
+                if not controller:
+                    controllers, controller = _get_controller(steam)
+                    time.sleep(0.016)
+                    continue
 
             analog_data = {
                 name: steam.Input.GetAnalogActionData(controller, handle)
@@ -126,9 +135,20 @@ def start_translation_loop(stop_event: threading.Event | None) -> None:
             js_gadget.update()
 
             time.sleep(0.016)
-    except Exception as exc:  # noqa: BLE001
-        _logger.error("Steam Input processing failed: %s", exc)
-    finally:
+
+        except Exception as exc:  # noqa: BLE001
+            retry_count += 1
+            _logger.warning(
+                "Steam initialization failed, retry %s/%s: %s",
+                retry_count,
+                max_retries,
+                exc,
+            )
+            time.sleep(2)
+        else:
+            break
+
+    if steam is not None:
         try:
             if steam is not None:
                 shutdown = getattr(steam, "shutdown", None)

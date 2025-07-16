@@ -68,25 +68,34 @@ reenable_sleep() {
     sudo systemctl unmask sleep.target suspend.target hibernate.target hybrid-sleep.target >/dev/null 2>&1
 }
 
-brightness_file=/sys/class/backlight/amdgpu_bl0/brightness
+brightness_file=${BRIGHTNESS_FILE:-$(find /sys/class/backlight -name brightness 2>/dev/null | head -n1)}
 
-set_brightness_to_minimum() {
-    if [ -w "$brightness_file" ]; then
-        cat "$brightness_file" >/tmp/brightness_bak 2>/dev/null || true
-        echo 0 >"$brightness_file" 2>/dev/null || true
-        chmod 444 "$brightness_file" 2>/dev/null || true
-    fi
-}
+# set_brightness_to_minimum() {
+#     if [ -w "$brightness_file" ]; then
+#         cat "$brightness_file" >/tmp/brightness_bak 2>/dev/null || true
+#         echo 0 >"$brightness_file" 2>/dev/null || true
+#         chmod 444 "$brightness_file" 2>/dev/null || true
+#     elif command -v brightnessctl >/dev/null 2>&1; then
+#         brightnessctl -m > /tmp/brightness_bak 2>/dev/null || true
+#         brightnessctl set 1% >/dev/null 2>&1 || true
+#     fi
+# }
 
-restore_brightness() {
-    if [ -w "$brightness_file" ] || [ -r "$brightness_file" ]; then
-        chmod 666 "$brightness_file" 2>/dev/null || true
-        if [ -f /tmp/brightness_bak ]; then
-            cat /tmp/brightness_bak >"$brightness_file" 2>/dev/null || true
-            rm /tmp/brightness_bak
-        fi
-    fi
-}
+# restore_brightness() {
+#     if [ -w "$brightness_file" ] || [ -r "$brightness_file" ]; then
+#         chmod 666 "$brightness_file" 2>/dev/null || true
+#         if [ -f /tmp/brightness_bak ]; then
+#             cat /tmp/brightness_bak >"$brightness_file" 2>/dev/null || true
+#             rm /tmp/brightness_bak
+#         fi
+#     elif command -v brightnessctl >/dev/null 2>&1; then
+#         if [ -f /tmp/brightness_bak ]; then
+#             value=$(cut -d, -f2 /tmp/brightness_bak)
+#             brightnessctl set "$value" >/dev/null 2>&1 || true
+#             rm /tmp/brightness_bak
+#         fi
+#     fi
+# }
 
 _show_run_prompt() {
     local battery
@@ -129,10 +138,9 @@ check_dependencies() {
 run_as_root() {
     check_dependencies
     $FIGLET_CMD "Starting DeckLink..."
-    set_brightness_to_minimum
     disable_sleep
     if ! python3 decklink_app/main_app.py setup; then
-        restore_brightness
+        # restore_brightness
         reenable_sleep
         return 1
     fi
@@ -151,14 +159,14 @@ run_as_root() {
     fi
     python3 decklink_app/main_app.py stop
     python3 decklink_app/main_app.py destroy
-    restore_brightness
+    # restore_brightness
     reenable_sleep
     $FIGLET_CMD "DeckLink Stopped"
 }
 
 prepare_fullscreen
 show_prompt "DeckLink requires root privileges" big
-show_prompt "(screen will dim)" big
+show_prompt "(screen dimming disabled)" big
 xhost local:root >/dev/null
 FUNC=$(declare -f run_as_root)
 sudo bash -c "$FUNC; run_as_root"
