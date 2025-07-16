@@ -2,6 +2,7 @@ import os
 import sys
 from unittest import mock
 
+import threading
 sys.path.insert(
     0,
     os.path.abspath(os.path.join(os.path.dirname(__file__), "..")),
@@ -77,3 +78,47 @@ def test_destroy_error():
         side_effect=RuntimeError,
     ):
         assert main_app.main(["destroy"]) == 1
+
+
+def test_app_controller_start_stop():
+    controller = main_app.AppController()
+    with mock.patch.object(main_app.input_translator, "start_translation_loop"):
+        t = controller.start()
+        assert t.is_alive()
+        controller.stop()
+        assert controller.thread is None
+
+
+def test_app_controller_restart_running_thread():
+    controller = main_app.AppController()
+    with mock.patch.object(main_app.input_translator, "start_translation_loop"):
+        t1 = controller.start()
+        t2 = controller.start()
+        assert t1 is t2
+        controller.stop()
+
+
+def test_app_controller_stop_no_thread():
+    controller = main_app.AppController()
+    controller.stop()
+    assert controller.thread is None
+
+
+def test_run_registers_signal_handlers():
+    stop_event = threading.Event()
+    controller = main_app.AppController()
+    controller.stop_event = stop_event
+    th = threading.Thread(target=lambda: None)
+    controller.thread = th
+    with (
+        mock.patch.object(main_app, "_controller", controller),
+        mock.patch.object(main_app.input_translator, "start_translation_loop"),
+        mock.patch("signal.signal") as sig_fn,
+    ):
+        main_app.main(["run"])
+    sig_fn.assert_any_call(signal.SIGINT, mock.ANY)
+    sig_fn.assert_any_call(signal.SIGTERM, mock.ANY)
+
+
+def test_main_invalid_action():
+    assert main_app.main(["foo"]) == 1
