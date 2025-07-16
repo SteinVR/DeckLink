@@ -101,3 +101,45 @@ def test_missing_action_set_exits():
     ):
         it.start_translation_loop(stop_event)
     steam.Input.GetActionSetHandle.assert_called_once_with(it.ACTION_SET_NAME)
+
+def test_retry_initialization_and_shutdown(monkeypatch):
+    stop_event = threading.Event()
+    steam_good = mock.MagicMock()
+    steam_good.Input = mock.MagicMock()
+    steam_good.Input.GetConnectedControllers.return_value = []
+    steam_good.Input.GetActionSetHandle.return_value = 0
+    steam_good.action_set = 1
+
+    def steam_factory():
+        if steam_factory.calls == 0:
+            steam_factory.calls += 1
+            raise RuntimeError("fail")
+        return steam_good
+    steam_factory.calls = 0
+    monkeypatch.setattr(it, "STEAMWORKS", lambda: steam_factory())
+
+    with (
+        mock.patch.object(it.usb_gadget, "HIDFunction"),
+        mock.patch.object(it.usb_gadget, "JoystickGadget"),
+        mock.patch.object(it.time, "sleep", side_effect=lambda *_: stop_event.set()),
+    ):
+        it.start_translation_loop(stop_event)
+    assert steam_factory.calls == 1
+    steam_good.shutdown.assert_called()
+
+
+def test_missing_action_handle_exits():
+    stop_event = threading.Event()
+    steam = mock.MagicMock()
+    steam.Input = mock.MagicMock()
+    steam.Input.GetConnectedControllers.return_value = []
+    steam.Input.GetActionSetHandle.return_value = 1
+    steam.Input.GetAnalogActionHandle.return_value = 0
+
+    with (
+        mock.patch.object(it, "STEAMWORKS", return_value=steam),
+        mock.patch.object(it.usb_gadget, "HIDFunction"),
+        mock.patch.object(it.usb_gadget, "JoystickGadget"),
+    ):
+        it.start_translation_loop(stop_event)
+    steam.Input.GetAnalogActionHandle.assert_called()
