@@ -57,9 +57,11 @@ def test_install_copies_files(tmp_path):
     assert "usb-gadget" in pip_log
     assert "python-hid-parser" in pip_log
 
+    # fmt: off
     assert (
         home / ".steam/steam/controller_config/game_actions_480.vdf"
     ).exists()
+    # fmt: on
     assert (polkit / "90-decklink.rules").exists()
 
 

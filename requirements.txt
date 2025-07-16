@@ -1,3 +1,0 @@
-git+https://github.com/Frederic98/SteamworksPy.git
-usb-gadget
-git+https://github.com/Frederic98/python-hid-parser.git 

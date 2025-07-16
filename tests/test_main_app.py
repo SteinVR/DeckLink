@@ -3,6 +3,8 @@ import sys
 from unittest import mock
 
 import threading
+import signal
+
 sys.path.insert(
     0,
     os.path.abspath(os.path.join(os.path.dirname(__file__), "..")),
@@ -82,7 +84,10 @@ def test_destroy_error():
 
 def test_app_controller_start_stop():
     controller = main_app.AppController()
-    with mock.patch.object(main_app.input_translator, "start_translation_loop"):
+    with mock.patch.object(
+        main_app.input_translator,
+        "start_translation_loop",
+    ):
         t = controller.start()
         assert t.is_alive()
         controller.stop()
@@ -91,7 +96,10 @@ def test_app_controller_start_stop():
 
 def test_app_controller_restart_running_thread():
     controller = main_app.AppController()
-    with mock.patch.object(main_app.input_translator, "start_translation_loop"):
+    with mock.patch.object(
+        main_app.input_translator,
+        "start_translation_loop",
+    ):
         t1 = controller.start()
         t2 = controller.start()
         assert t1 is t2

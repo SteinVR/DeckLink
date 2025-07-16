@@ -32,12 +32,20 @@ Connect the Deck to your PC via USB‑C. The host should detect a generic gamepa
 
 ## Steam Integration
 
-To start DeckLink from Game Mode:
+To launch DeckLink from Game Mode:
 
-1. In Desktop Mode, open Steam and choose **Add a Non‑Steam Game**.
-2. Browse to `/usr/share/decklink/main.sh` and add it to your library.
+1. In Desktop Mode, open Steam and add any application as a **Non‑Steam Game**. This entry will become the DeckLink launcher.
+2. Select the new entry, click **Properties** and replace the fields with:
+
+   | Setting | Value |
+   | --- | --- |
+   | **Title** | DeckLink |
+   | **Target** | `env` |
+   | **Start In** | `"/usr/share/decklink"` |
+   | **Launch Options** | `-u LD_PRELOAD konsole --fullscreen -e ./main.sh` |
+
 3. In Game Mode, edit the controller layout for DeckLink and enable **Touchscreen Native Support** under *Action Sets → Default → Add Always‑On command*.
-4. Launch the shortcut from your library.
+4. Launch the DeckLink entry from your library.
 
 ## Troubleshooting
 

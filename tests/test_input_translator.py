@@ -102,6 +102,7 @@ def test_missing_action_set_exits():
         it.start_translation_loop(stop_event)
     steam.Input.GetActionSetHandle.assert_called_once_with(it.ACTION_SET_NAME)
 
+
 def test_retry_initialization_and_shutdown(monkeypatch):
     stop_event = threading.Event()
     steam_good = mock.MagicMock()
@@ -115,13 +116,18 @@ def test_retry_initialization_and_shutdown(monkeypatch):
             steam_factory.calls += 1
             raise RuntimeError("fail")
         return steam_good
+
     steam_factory.calls = 0
     monkeypatch.setattr(it, "STEAMWORKS", lambda: steam_factory())
 
     with (
         mock.patch.object(it.usb_gadget, "HIDFunction"),
         mock.patch.object(it.usb_gadget, "JoystickGadget"),
-        mock.patch.object(it.time, "sleep", side_effect=lambda *_: stop_event.set()),
+        mock.patch.object(
+            it.time,
+            "sleep",
+            side_effect=lambda *_: stop_event.set(),
+        ),
     ):
         it.start_translation_loop(stop_event)
     assert steam_factory.calls == 1
