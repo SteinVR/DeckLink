@@ -117,6 +117,7 @@ def test_validate_hid_device_missing():
         with pytest.raises(FileNotFoundError):
             gm.validate_hid_device()
 
+
 def test_gadget_destroy_removes_dirs():
     gadget = mock.MagicMock(
         path="/gadget",
@@ -134,10 +135,16 @@ def test_gadget_destroy_removes_dirs():
     ]
     with (
         mock.patch.object(gm, "gadget", gadget),
-        mock.patch("decklink_app.gadget_manager.os.scandir", side_effect=scandir_side),
+        mock.patch(
+            "decklink_app.gadget_manager.os.scandir",
+            side_effect=scandir_side,
+        ),
         mock.patch(
             "decklink_app.gadget_manager.usb_gadget.ConfigFS",
-            side_effect=lambda p: Node(path=p, strings=Node(path=f"{p}/strings")),
+            side_effect=lambda p: Node(
+                path=p,
+                strings=Node(path=f"{p}/strings"),
+            ),
         ),
         mock.patch("decklink_app.gadget_manager.os.remove") as rm,
         mock.patch("decklink_app.gadget_manager.os.rmdir") as rmdir,
@@ -154,9 +161,17 @@ def test_create_function_hid_from_file(tmp_path):
     descriptor.get_input_report_size.return_value = Node(byte=8)
     descriptor.data = b"abc"
     with (
-        mock.patch.object(gm.hid_parser.ReportDescriptor, "from_str", return_value=descriptor) as from_str,
+        mock.patch.object(
+            gm.hid_parser.ReportDescriptor,
+            "from_str",
+            return_value=descriptor,
+        ) as from_str,
         mock.patch.object(gm, "gadget"),
-        mock.patch("decklink_app.gadget_manager.usb_gadget.HIDFunction") as hid_cls,
+        # fmt: off
+        mock.patch(
+            "decklink_app.gadget_manager.usb_gadget.HIDFunction"
+        ) as hid_cls,
+        # fmt: on
     ):
         gm.create_function_hid("mouse", str(desc_path))
     from_str.assert_called_once()
@@ -168,9 +183,16 @@ def test_create_function_hid_from_list():
     descriptor.get_input_report_size.return_value = Node(byte=8)
     descriptor.data = b"abc"
     with (
-        mock.patch("decklink_app.gadget_manager.hid_parser.ReportDescriptor", return_value=descriptor) as desc_cls,
+        mock.patch(
+            "decklink_app.gadget_manager.hid_parser.ReportDescriptor",
+            return_value=descriptor,
+        ) as desc_cls,
         mock.patch.object(gm, "gadget"),
-        mock.patch("decklink_app.gadget_manager.usb_gadget.HIDFunction") as hid_cls,
+        # fmt: off
+        mock.patch(
+            "decklink_app.gadget_manager.usb_gadget.HIDFunction"
+        ) as hid_cls,
+        # fmt: on
     ):
         gm.create_function_hid("kbd", [1, 2, 3])
     desc_cls.assert_called_once_with([1, 2, 3])
@@ -178,12 +200,18 @@ def test_create_function_hid_from_list():
 
 
 def test_remove_function():
+    # fmt: off
     gadget = Node(
         configs=Node(
-            **{"c.1": Node(**{"hid.joystick": Node(path="/config/hid.joystick")})}
+            **{
+                "c.1": Node(
+                    **{"hid.joystick": Node(path="/config/hid.joystick")}
+                )
+            }
         ),
         functions=Node(**{"hid.joystick": Node(path="/func")}),
     )
+    # fmt: on
     gadget.__getitem__ = lambda self, key: getattr(self, key)
     with (
         mock.patch.object(gm, "gadget", gadget),
@@ -197,7 +225,10 @@ def test_remove_function():
 
 def test_chmod_hidg():
     with (
-        mock.patch("decklink_app.gadget_manager.glob.glob", return_value=["/dev/hidg0"]),
+        mock.patch(
+            "decklink_app.gadget_manager.glob.glob",
+            return_value=["/dev/hidg0"],
+        ),
         mock.patch("decklink_app.gadget_manager.subprocess.call") as call,
     ):
         gm.chmod_hidg()
@@ -205,5 +236,8 @@ def test_chmod_hidg():
 
 
 def test_validate_hid_device_success():
-    with mock.patch("decklink_app.gadget_manager.glob.glob", return_value=["/dev/hidg0"]):
+    with mock.patch(
+        "decklink_app.gadget_manager.glob.glob",
+        return_value=["/dev/hidg0"],
+    ):
         gm.validate_hid_device()

@@ -28,4 +28,3 @@ def _log_uncaught_exception(exc_type, exc, tb) -> None:
 _setup_logging()
 
 sys.excepthook = _log_uncaught_exception
-

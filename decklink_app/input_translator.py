@@ -83,10 +83,12 @@ def start_translation_loop(stop_event: threading.Event | None) -> None:
             if not steam.action_set:
                 _logger.error("Steam action set %s not found", ACTION_SET_NAME)
                 return
+            # fmt: off
             steam.analog_handles = {
                 name: steam.Input.GetAnalogActionHandle(name)
                 for name in ANALOG_ACTIONS
             }
+            # fmt: on
             steam.digital_handles = {
                 name: steam.Input.GetDigitalActionHandle(name)
                 for name in DIGITAL_ACTIONS
