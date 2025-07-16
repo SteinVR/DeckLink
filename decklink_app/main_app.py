@@ -53,6 +53,7 @@ def setup() -> int:
     try:
         gm.gadget_setup()
         gm.function_enable("joystick")
+        gm.validate_hid_device()
     except Exception as exc:  # noqa: BLE001
         _logger.error("Setup failed: %s", exc)
         return 1

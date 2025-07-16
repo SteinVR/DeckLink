@@ -2,6 +2,7 @@ import os
 import sys
 from types import SimpleNamespace
 from unittest import mock
+import pytest
 
 
 sys.path.insert(
@@ -109,3 +110,9 @@ def test_function_disable_shell():
     remove_fn.assert_called_once_with("acm.shell")
     gadget.activate.assert_not_called()
     chmod.assert_not_called()
+
+
+def test_validate_hid_device_missing():
+    with mock.patch("decklink_app.gadget_manager.glob.glob", return_value=[]):
+        with pytest.raises(FileNotFoundError):
+            gm.validate_hid_device()

@@ -16,10 +16,12 @@ def test_main_setup_ok():
     with (
         mock.patch.object(main_app.gm, "gadget_setup") as setup_fn,
         mock.patch.object(main_app.gm, "function_enable") as enable_fn,
+        mock.patch.object(main_app.gm, "validate_hid_device") as validate_fn,
     ):
         assert main_app.main(["setup"]) == 0
         setup_fn.assert_called_once()
         enable_fn.assert_called_once_with("joystick")
+        validate_fn.assert_called_once()
 
 
 def test_main_setup_error():
@@ -30,9 +32,24 @@ def test_main_setup_error():
             side_effect=RuntimeError,
         ),
         mock.patch.object(main_app.gm, "function_enable") as enable_fn,
+        mock.patch.object(main_app.gm, "validate_hid_device") as validate_fn,
     ):
         assert main_app.main(["setup"]) == 1
         enable_fn.assert_not_called()
+        validate_fn.assert_not_called()
+
+
+def test_main_setup_hid_validation_error():
+    with (
+        mock.patch.object(main_app.gm, "gadget_setup"),
+        mock.patch.object(main_app.gm, "function_enable"),
+        mock.patch.object(
+            main_app.gm,
+            "validate_hid_device",
+            side_effect=FileNotFoundError,
+        ),
+    ):
+        assert main_app.main(["setup"]) == 1
 
 
 def test_run_dispatches_controller_start():

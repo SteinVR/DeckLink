@@ -4,6 +4,7 @@ set -euo pipefail
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DESTDIR="${DESTDIR:-/usr/share/decklink}"
 PYPROJECT_FILE="${PYPROJECT_FILE:-$DIR/pyproject.toml}"
+POLKIT_DIR="${POLKIT_DIR:-/etc/polkit-1/rules.d}"
 
 pacman_install() {
     if command -v pacman >/dev/null 2>&1; then
@@ -61,6 +62,18 @@ install_files() {
     install -m755 "$DIR/main.sh" "$DESTDIR/main.sh"
 }
 
+install_polkit() {
+    if [ -d "$POLKIT_DIR" ]; then
+        sudo cp "$DIR/policy/90-decklink.rules" "$POLKIT_DIR/"
+    fi
+}
+
+install_vdf() {
+    local cfg="$HOME/.steam/steam/controller_config"
+    mkdir -p "$cfg"
+    cp "$DIR/decklink_app/game_actions_480.vdf" "$cfg/"
+}
+
 main() {
     check_python
     pacman_install xorg-xinput figlet
@@ -70,6 +83,8 @@ main() {
         pip_install $deps
     fi
     install_files
+    install_polkit
+    install_vdf
     echo "DeckLink installed to $DESTDIR"
 }
 
