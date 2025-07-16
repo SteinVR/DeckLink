@@ -77,12 +77,16 @@ def start_translation_loop(stop_event: threading.Event | None) -> None:
         steam.Input.Init()
 
         steam.action_set = steam.Input.GetActionSetHandle(ACTION_SET_NAME)
+        # fmt: off
         steam.analog_handles = {
-            name: steam.Input.GetAnalogActionHandle(name) for name in ANALOG_ACTIONS
+            name: steam.Input.GetAnalogActionHandle(name)
+            for name in ANALOG_ACTIONS
         }
         steam.digital_handles = {
-            name: steam.Input.GetDigitalActionHandle(name) for name in DIGITAL_ACTIONS
+            name: steam.Input.GetDigitalActionHandle(name)
+            for name in DIGITAL_ACTIONS
         }
+        # fmt: on
 
         controllers, controller = _get_controller(steam)
 
@@ -98,7 +102,10 @@ def start_translation_loop(stop_event: threading.Event | None) -> None:
                 for name, handle in steam.analog_handles.items()
             }
             digital_data = {
-                name: steam.Input.GetDigitalActionData(controller, handle).bState
+                name: steam.Input.GetDigitalActionData(
+                    controller,
+                    handle,
+                ).bState
                 for name, handle in steam.digital_handles.items()
             }
 
