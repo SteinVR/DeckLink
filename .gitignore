@@ -2,6 +2,7 @@ __pycache__/
 .cursor/
 .github/
 .pytest_cache/
+.DS_Store
 AGENT/
 external/
 tests/
