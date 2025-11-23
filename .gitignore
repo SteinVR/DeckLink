@@ -1,0 +1,7 @@
+__pycache__/
+.cursor/
+.github/
+.pytest_cache/
+AGENT/
+external/
+tests/

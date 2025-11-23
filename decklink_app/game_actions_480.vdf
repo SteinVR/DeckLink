@@ -1,0 +1,89 @@
+"In Game Actions"
+{
+	"actions"
+	{
+		"InGameControls"
+		{
+			"title"					"#Set_Ingame"
+			"StickPadGyro"
+			{
+				"JoyLeft"
+				{
+					"title"			"#Action_JoyLeft"
+					"input_mode"	"joystick_move"
+				}
+				"JoyRight"
+				{
+					"title"			"#Action_JoyRight"
+					"input_mode"	"joystick_move"
+				}
+				"Mouse"
+				{
+					"title"			"#Action_Mouse"
+					"input_mode"	"absolute_mouse"
+				}
+			}
+			"AnalogTrigger"
+			{
+				"TrigLeft"			"#Action_TrigLeft"
+				"TrigRight"			"#Action_TrigRight"
+			}
+			"Button"
+			{
+				"X"				"#Action_X"
+				"Y"				"#Action_Y"
+				"A"             "#Action_A"
+				"B"             "#Action_B"
+				"UP"	        "#Action_UP"
+				"DOWN"			"#Action_DOWN"
+				"LEFT"          "#Action_LEFT"
+				"RIGHT"         "#Action_RIGHT"
+				"BumpLeft"      "#Action_BumpLeft"
+				"BumpRight"     "#Action_BumpRight"
+				"Menu"          "#Action_Menu"
+				"Start"         "#Action_Start"
+				"JoyPressLeft"    "#Action_JoyPressLeft"
+				"JoyPressRight"   "#Action_JoyPressRight"
+				"MouseClickLeft"  "#Action_MouseClickLeft"
+				"MouseClickRight" "#Action_MouseClickRight"
+				"BackLeftTop"     "#Action_BackLeftTop"
+				"BackLeftBottom"  "#Action_BackLeftBottom"
+				"BackRightTop"    "#Action_BackRightTop"
+				"BackRightBottom" "#Action_BackRightBottom"
+			}
+		}
+	}
+	"localization"
+	{
+		"english"
+		{
+			"Set_Ingame"			    "In-Game Controls"
+			"Set_Menu"				    "Menu Controls"
+			"Action_JoyLeft"		    "Joystick Left"
+			"Action_JoyRight"		    "Joystick Right"
+			"Action_Mouse"              "Mouse"
+			"Action_MouseClickLeft"     "Mouse Click Left"
+			"Action_MouseClickRight"    "Mouse Click Right"
+			"Action_TrigLeft"		    "Trigger Left"
+			"Action_TrigRight"		    "Trigger Right"
+			"Action_BumpLeft"           "Bumper Left"
+			"Action_BumpRight"          "Bumper Right"
+			"Action_JoyPressLeft"       "Joystick Press Left"
+			"Action_JoyPressRight"      "Joystick Press Right"
+			"Action_X"			        "Button X"
+			"Action_Y"			        "Button Y"
+			"Action_A"			        "Button A"
+			"Action_B"			        "Button B"
+			"Action_UP"			        "DPAD Up"
+			"Action_DOWN"               "DPAD Down"
+			"Action_LEFT"               "DPAD Left"
+			"Action_RIGHT"	            "DPAD Right"
+			"Action_Menu"               "Button Menu"
+			"Action_Start"              "Button Start"
+            "Action_BackLeftTop"        "Back Paddle Top Left"
+            "Action_BackLeftBottom"     "Back Paddle Bottom Left"
+            "Action_BackRightTop"       "Back Paddle Top Right"
+            "Action_BackRightBottom"    "Back Paddle Bottom Right"
+		}
+	}
+}

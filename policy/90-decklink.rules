@@ -1,0 +1,12 @@
+// /etc/polkit-1/rules.d/99-DeckLink.rules
+// Allow non-root user to manage DeckLink service
+polkit.addRule(function(action, subject) {
+    if (action.id == "org.freedesktop.systemd1.manage-units" && subject.user == "deck") {
+        if(action.lookup("unit") == "DeckLink-base.service"){
+            return polkit.Result.YES;
+        }
+        if(RegExp('DeckLink@[A-Za-z0-9_-]+.service').test(action.lookup("unit"))){
+            return polkit.Result.YES;
+        }
+    }
+});
